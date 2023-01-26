@@ -22,6 +22,16 @@ class MutRuntimeImage : public MutRuntimeImageView<TPredicate> {
   /// Empty image.
   MutRuntimeImage() = default;
 
+  /// Not copy constructable
+  MutRuntimeImage(MutRuntimeImage const& other) = delete;
+  /// Not copy assignable
+  MutRuntimeImage& operator=(MutRuntimeImage const&) = delete;
+
+  /// Move constructable
+  MutRuntimeImage(MutRuntimeImage && other) = default;
+  /// Move assignable
+  MutRuntimeImage& operator=(MutRuntimeImage &&) = default;
+
   /// Create type-erased image from MutImage.
   ///
   /// By design not "explicit".
@@ -65,12 +75,6 @@ class MutRuntimeImage : public MutRuntimeImageView<TPredicate> {
   static MutRuntimeImage makeCopyFrom(ImageView<TT> image_view) {
     return MutImage<TT>::makeCopyFrom(image_view);
   }
-
-  /// Not copy constructable
-  MutRuntimeImage(MutRuntimeImage const& other) = delete;
-
-  /// Not copy assignable
-  MutRuntimeImage& operator=(MutRuntimeImage const&) = delete;
 
   /// Return true is this contains data of type TPixel.
   template <class TPixel>

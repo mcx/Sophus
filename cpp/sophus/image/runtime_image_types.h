@@ -9,6 +9,7 @@
 #pragma once
 
 #include "sophus/image/runtime_image.h"
+#include "sophus/image/mut_runtime_image.h"
 
 namespace sophus {
 
@@ -17,6 +18,10 @@ namespace sophus {
 template <template <class> class TAllocator = Eigen::aligned_allocator>
 using AnyImage = RuntimeImage<AnyImagePredicate, TAllocator>;
 using AnyImageView = RuntimeImageView<AnyImagePredicate>;
+template <template <class> class TAllocator = Eigen::aligned_allocator>
+using MutAnyImage = MutRuntimeImage<AnyImagePredicate, TAllocator>;
+using MutAnyImageView = MutRuntimeImageView<AnyImagePredicate>;
+
 
 template <class TPixelVariant>
 struct VariantImagePredicate {
@@ -45,6 +50,9 @@ using IntensityImagePredicate = VariantImagePredicate<std::variant<
 template <template <class> class TAllocator = Eigen::aligned_allocator>
 using IntensityImage = RuntimeImage<IntensityImagePredicate, TAllocator>;
 using IntensityImageView = RuntimeImageView<IntensityImagePredicate>;
+template <template <class> class TAllocator = Eigen::aligned_allocator>
+using MutIntensityImage = MutRuntimeImage<IntensityImagePredicate, TAllocator>;
+using MutIntensityImageView = MutRuntimeImageView<IntensityImagePredicate>;
 
 namespace detail {
 // Call UserFunc with TRuntimeImage cast to the appropriate concrete type
