@@ -22,7 +22,7 @@ namespace sophus {
 
 // Types are largely inspired / derived from Pangolin.
 
-template <class TPixel, template <class> class TAllocator>
+template <class TPixel, class TAllocator>
 class Image;
 
 struct UniqueDataAreaDeleter {
@@ -42,23 +42,9 @@ using UniqueDataArea = std::unique_ptr<uint8_t, UniqueDataAreaDeleter>;
 /// Type is nullable. In that case `this->isEmpty()` is true.
 ///
 /// Similar to Pangolin::ManagedImage.
-template <
-    class TPixel,
-    template <class> class TAllocator = Eigen::aligned_allocator>
+template <class TPixel, class TAllocator = Eigen::aligned_allocator<uint8_t>>
 class MutImage : public MutImageView<TPixel> {
  public:
-  struct TypedDeleterImpl {
-    TypedDeleterImpl(size_t num_bytes) : num_bytes(num_bytes) {}
-
-    void operator()(TPixel* p) const {
-      if (p != nullptr) {
-        TAllocator<TPixel>().deallocate(p, num_bytes / sizeof(TPixel));
-      }
-    }
-
-    size_t num_bytes;
-  };
-
   /// Deleter for MutImage.
   struct Deleter : UniqueDataAreaDeleter {
     Deleter() = default;
@@ -66,14 +52,14 @@ class MutImage : public MutImageView<TPixel> {
 
     void operator()(uint8_t* p) const final {
       if (image_deleter) {
-        (*image_deleter)(reinterpret_cast<TPixel*>(p));
+        (*image_deleter)(p);
       }
     }
 
-    std::optional<TypedDeleterImpl> image_deleter;
+    std::optional<TAllocator> image_deleter;
   };
 
-  template <class TT, template <class> class TAllocator2T>
+  template <class TT, class TAllocator2T>
   friend class Image;
 
   /// Constructs empty image.
@@ -87,8 +73,7 @@ class MutImage : public MutImageView<TPixel> {
     if (shape.sizeBytes() != 0u) {
       SOPHUS_ASSERT_EQ(shape.sizeBytes() % sizeof(TPixel), 0);
       this->unique_ = UniqueDataArea(
-          (uint8_t*)(TAllocator<TPixel>().allocate(
-              shape.sizeBytes() / sizeof(TPixel))),
+          TAllocator<TPixel>().allocate(shape.sizeBytes()),
           Deleter(TypedDeleterImpl(shape.sizeBytes())));
     }
     this->ptr_ = reinterpret_cast<TPixel*>(this->unique_.get());

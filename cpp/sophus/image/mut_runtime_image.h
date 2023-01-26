@@ -16,7 +16,7 @@ namespace sophus {
 
 template <
     class TPredicate = AnyImagePredicate,
-    template <class> class TAllocator = Eigen::aligned_allocator>
+    class TAllocator = Eigen::aligned_allocator<uint8_t>>
 class MutRuntimeImage : public MutRuntimeImageView<TPredicate> {
  public:
   /// Empty image.
@@ -28,9 +28,9 @@ class MutRuntimeImage : public MutRuntimeImageView<TPredicate> {
   MutRuntimeImage& operator=(MutRuntimeImage const&) = delete;
 
   /// Move constructable
-  MutRuntimeImage(MutRuntimeImage && other) = default;
+  MutRuntimeImage(MutRuntimeImage&& other) = default;
   /// Move assignable
-  MutRuntimeImage& operator=(MutRuntimeImage &&) = default;
+  MutRuntimeImage& operator=(MutRuntimeImage&&) = default;
 
   /// Create type-erased image from MutImage.
   ///
@@ -42,23 +42,6 @@ class MutRuntimeImage : public MutRuntimeImageView<TPredicate> {
             RuntimePixelType::fromTemplate<TPixel>(),
             std::move(image.unique_)) {
     static_assert(TPredicate::template isTypeValid<TPixel>());
-  }
-
-  /// Create type-image image from provided shape and pixel type.
-  /// Pixel data is left uninitialized
-  MutRuntimeImage(ImageShape const& shape, RuntimePixelType const& pixel_type)
-      : MutRuntimeImage(
-            shape,
-            pixel_type,
-            std::unique_ptr<uint8_t>(TAllocator<uint8_t>().allocate(
-                shape.height() * shape.pitchBytes()))) {
-    // TODO: Missing check on ImagePredicate against pixel_type
-    //       has to be a runtime check, since we don't know at compile time.
-
-    SOPHUS_ASSERT_LE(
-        shape.width() * pixel_type.num_channels *
-            pixel_type.num_bytes_per_pixel_channel,
-        (int)shape.pitchBytes());
   }
 
   /// Create type-image image from provided size and pixel type.
